@@ -12,6 +12,40 @@ import (
 	"gorm.io/gorm"
 )
 
+type CreateReaderRequest struct {
+	Name          string `json:"name" binding:"required"`
+	Email         string `json:"email" binding:"required,email"`
+	ContactNumber string `json:"contact_number" binding: "required,email"`
+}
+
+// CreateReader allows an admin (Owner or LibraryAdmin) to add a new reader to their library.
+func CreateReader(c *gin.Context) {
+	var req CreateReaderRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	// Retrieve the current admin user from context.
+	adminUser := c.MustGet(string(middlewares.UserContextKey)).(middlewares.User)
+
+	// Create a new reader with the same LibID as the admin.
+	reader := models.User{
+		Name:          req.Name,
+		Email:         req.Email,
+		ContactNumber: req.ContactNumber,
+		Role:          "Reader",
+		LibID:         adminUser.LibID,
+	}
+
+	if err := config.DB.Create(&reader).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create reader"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Reader created successfully", "reader": reader})
+}
+
 // SearchBooks allows a reader to search for books by title, author, or publisher.
 func SearchBooks(c *gin.Context) {
 	user := c.MustGet(string(middlewares.UserContextKey)).(middlewares.User)

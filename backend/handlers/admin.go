@@ -105,12 +105,10 @@ func AddBook(c *gin.Context) {
 	}
 }
 
-// RemoveBookRequest defines payload for removing book copies.
 type RemoveBookRequest struct {
 	CopiesToRemove int `json:"CopiesToRemove" binding:"required,gt=0"`
 }
 
-// RemoveBook decrements copies or deletes the record if total reaches zero.
 func RemoveBook(c *gin.Context) {
 	isbn := c.Param("isbn")
 	var req RemoveBookRequest
@@ -186,7 +184,6 @@ func ListIssueRequests(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"requests": requests})
 }
 
-// ApproveIssueRequest approves an issue request and issues a book.
 func ApproveIssueRequest(c *gin.Context) {
 	reqIDStr := c.Param("reqid")
 	reqID, err := strconv.Atoi(reqIDStr)
@@ -236,6 +233,7 @@ func ApproveIssueRequest(c *gin.Context) {
 		return
 	}
 	book.AvailableCopies -= 1
+
 	if err := tx.Save(&book).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error updating book inventory"})

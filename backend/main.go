@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	// Connect to the database.
+
 	config.ConnectDatabase()
 
 	gin.SetMode(gin.ReleaseMode)
@@ -20,12 +20,9 @@ func main() {
 
 	router.POST("/signup", handlers.Signup)
 	router.POST("/library/create", handlers.CreateLibrary)
-	// Global authentication middleware (checks for X-User-Email header).
+
 	router.Use(middlewares.AuthMiddleware)
 
-	// Library Owner Flow: Create library (and Owner).
-
-	// Owner-only endpoint to onboard a LibraryAdmin.
 	router.POST("/owner/admin/create", handlers.CreateAdmin)
 
 	// Admin routes: accessible by Owner or LibraryAdmin.
@@ -38,9 +35,9 @@ func main() {
 		adminGroup.GET("/requests", handlers.ListIssueRequests)
 		adminGroup.POST("/requests/:reqid/approve", handlers.ApproveIssueRequest)
 		adminGroup.POST("/requests/:reqid/reject", handlers.RejectIssueRequest)
+		adminGroup.POST("/reader/create", handlers.CreateReader)
 	}
 
-	// Reader routes.
 	readerGroup := router.Group("/reader")
 	readerGroup.Use(middlewares.ReaderMiddleware)
 	{
