@@ -1,5 +1,7 @@
 package models
 
+//import "gorm.io/gorm"
+
 type Book struct {
 	// Composite primary key: ISBN and LibID.
 	ISBN            string `gorm:"primaryKey"`

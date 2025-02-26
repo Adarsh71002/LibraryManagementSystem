@@ -12,7 +12,7 @@ import (
 // CreateLibraryRequest defines the input payload for creating a library.
 type CreateLibraryRequest struct {
 	LibraryName  string `json:"libraryName" binding:"required"`
-	OwnerName    string `json:"ownerName" binding:"required"`
+	OwnerName    string `json:"OwnerName" binding:"required"`
 	OwnerEmail   string `json:"ownerEmail" binding:"required,email"`
 	OwnerContact string `json:"ownerContact"`
 }
