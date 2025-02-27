@@ -10,6 +10,8 @@ import AddBook from './components/AddBook';
 import RemoveBook from './components/RemoveBook';
 import UpdateBook from './components/UpdateBook';
 import IssueRequests from './components/IssueRequests';
+import SearchBook from './components/SearchBook';
+import RaiseRequest from './components/RaiseRequest';
 
 function App() {
   return (
@@ -24,6 +26,9 @@ function App() {
       <Route path="/remove-book" element={<RemoveBook />} />
       <Route path="/update-book" element={<UpdateBook />} />
       <Route path="/issue-requests" element={<IssueRequests />} />
+      <Route path="/search-book" element={<SearchBook />} />
+      <Route path="/raise-request" element={<RaiseRequest />} />
+
     </Routes>
   );
 }

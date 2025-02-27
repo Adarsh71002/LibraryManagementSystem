@@ -13,6 +13,7 @@ const SignIn = () => {
       const user = await signInAPI(email);
      // console.log(user)
      localStorage.setItem('user', JSON.stringify(user));
+     
       navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Sign in failed');

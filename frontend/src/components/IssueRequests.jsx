@@ -5,12 +5,14 @@ import { getIssueRequestsAPI, approveIssueRequestAPI, rejectIssueRequestAPI } fr
 const IssueRequests = () => {
   const [requests, setRequests] = useState([]);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
   const fetchRequests = async () => {
     try {
       const data = await getIssueRequestsAPI();
       setRequests(data.requests || data);
+      setError('');
     } catch (err) {
       setError(err.message || 'Failed to fetch requests');
     }
@@ -23,25 +25,32 @@ const IssueRequests = () => {
   const handleApprove = async (reqid) => {
     try {
       await approveIssueRequestAPI(reqid);
+      setMessage('Book issued successfully');
       fetchRequests();
+      setTimeout(() => setMessage(''), 3000); // Clear message after 3 seconds
     } catch (err) {
       setError(err.message || 'Approve failed');
+      setTimeout(() => setError(''), 3000);
     }
   };
 
   const handleReject = async (reqid) => {
     try {
       await rejectIssueRequestAPI(reqid);
+      setMessage('Issue request rejected');
       fetchRequests();
+      setTimeout(() => setMessage(''), 3000);
     } catch (err) {
       setError(err.message || 'Reject failed');
+      setTimeout(() => setError(''), 3000);
     }
   };
 
   return (
     <div className="container">
       <h2>Issue Requests</h2>
-      {error && <p className="error">{error}</p>}
+      {message && <div className="notification success">{message}</div>}
+      {error && <div className="notification error">{error}</div>}
       {requests.length === 0 ? (
         <p>No issue requests found.</p>
       ) : (

@@ -1,84 +1,138 @@
+/* Use a modern Google Font if desired (add the link in your HTML head) */
 body {
   margin: 0;
-  font-family: 'Arial', sans-serif;
-  background: #f4f4f4;
+  font-family: 'Roboto', sans-serif;
+  background: linear-gradient(135deg, #e0eafc, #cfdef3);
   color: #333;
 }
 
 .container {
-  max-width: 500px;
+  max-width: 600px;
   margin: 50px auto;
-  padding: 20px;
+  padding: 30px;
   background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-h1, h2 {
+h1, h2, h3 {
   text-align: center;
+  color: #2c3e50;
 }
 
-.button-group,
-.dashboard-options {
+.button-group, .dashboard-options {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 10px;
+  gap: 15px;
   margin-top: 20px;
 }
 
 button {
-  padding: 10px 20px;
+  padding: 12px 25px;
   border: none;
-  background: #007BFF;
+  background: #3498db;
   color: #fff;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background 0.3s ease;
+  font-size: 1rem;
 }
 
 button:hover {
-  background: #0056b3;
+  background: #2980b9;
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
+  margin-bottom: 8px;
+  font-weight: 600;
 }
 
-.form-group input {
+.form-group input,
+.form-group select,
+.form-group textarea {
   width: 100%;
-  padding: 8px;
+  padding: 10px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 1rem;
 }
 
 .error {
-  color: red;
-  font-size: 0.9em;
+  color: #e74c3c;
+  font-size: 0.95rem;
+  margin-top: 10px;
 }
 
 .success {
-  color: green;
-  font-size: 0.9em;
+  color: #27ae60;
+  font-size: 1rem;
+  margin-top: 10px;
+  text-align: center;
+  padding: 10px;
+  background-color: #ecf9f1;
+  border: 1px solid #27ae60;
+  border-radius: 6px;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 table, th, td {
-  border: 1px solid #ddd;
+  border: 1px solid #ccc;
 }
 
 th, td {
-  padding: 8px;
+  padding: 12px;
   text-align: center;
 }
+
+.notification {
+  margin: 20px auto;
+  max-width: 600px;
+  text-align: center;
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.notification.success {
+  background-color: #ecf9f1;
+  border: 1px solid #27ae60;
+  color: #27ae60;
+}
+
+.notification.error {
+  background-color: #fdecea;
+  border: 1px solid #e74c3c;
+  color: #e74c3c;
+}
+
+/* Existing styles... */
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px; /* Optional: Ensure a minimum width for the table */
+}
+
+th, td {
+  padding: 12px;
+  text-align: center;
+  border: 1px solid #ccc;
+}
+

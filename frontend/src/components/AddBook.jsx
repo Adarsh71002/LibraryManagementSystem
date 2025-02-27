@@ -17,12 +17,18 @@ const AddBook = () => {
     e.preventDefault();
     try {
       await addBookAPI({
-        isbn,
+        /*isbn,
         title,
         authors,
         publisher,
         version,
-        copies: Number(copies),
+        copies: Number(copies),*/
+        ISBN: isbn,
+        Title: title,
+        Authors: authors,
+        Publisher: publisher,
+        Version: version,
+        Copies: Number(copies)
       });
       setMessage('Book added successfully');
       navigate('/dashboard');
