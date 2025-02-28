@@ -8,6 +8,8 @@ import (
 	"lms/backend/config"
 	"lms/backend/middlewares"
 	"lms/backend/models"
+	"gorm.io/gorm"
+
 
 	"github.com/gin-gonic/gin"
 )
@@ -63,7 +65,7 @@ type AddBookRequest struct {
 }
 
 // AddBook adds a new book or increments copies if it already exists.
-func AddBook(c *gin.Context) {
+/*func AddBook(c *gin.Context) {
 	var req AddBookRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing or invalid required book fields"})
@@ -103,7 +105,62 @@ func AddBook(c *gin.Context) {
 		}
 		c.JSON(http.StatusOK, gin.H{"message": "Book copies updated"})
 	}
+}*/
+
+func AddBook(c *gin.Context) {
+    var req AddBookRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Missing or invalid required book fields"})
+        return
+    }
+
+    user := c.MustGet(string(middlewares.UserContextKey)).(middlewares.User)
+    libID := user.LibID
+
+    var book models.Book
+    // Query only by ISBN to enforce global uniqueness.
+    err := config.DB.Where("isbn = ?", req.ISBN).First(&book).Error
+    if err != nil {
+        if err == gorm.ErrRecordNotFound {
+            // No book with this ISBN exists at all, create a new record.
+            newBook := models.Book{
+                ISBN:            req.ISBN,
+                LibID:           libID,
+                Title:           req.Title,
+                Authors:         req.Authors,
+                Publisher:       req.Publisher,
+                Version:         req.Version,
+                TotalCopies:     req.Copies,
+                AvailableCopies: req.Copies,
+            }
+            if err := config.DB.Create(&newBook).Error; err != nil {
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error adding new book"})
+                return
+            }
+            c.JSON(http.StatusCreated, gin.H{"message": "Book added successfully"})
+            return
+        } else {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error searching for book"})
+            return
+        }
+    }
+
+    // A book with this ISBN was found.
+    if book.LibID != libID {
+        // The same ISBN exists in a different library.
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Book with this ISBN already exists in another library"})
+        return
+    }
+    // Otherwise, the book is in the same library, so update the copies.
+    book.TotalCopies += req.Copies
+    book.AvailableCopies += req.Copies
+    if err := config.DB.Save(&book).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error updating book copies"})
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"message": "Book copies updated"})
 }
+
 
 type RemoveBookRequest struct {
 	CopiesToRemove int `json:"CopiesToRemove" binding:"required,gt=0"`
@@ -168,6 +225,7 @@ func UpdateBook(c *gin.Context) {
 }
 
 // ListIssueRequests lists all issue requests for the library.
+/*
 func ListIssueRequests(c *gin.Context) {
 	user := c.MustGet(string(middlewares.UserContextKey)).(middlewares.User)
 	libID := user.LibID
@@ -182,7 +240,23 @@ func ListIssueRequests(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"requests": requests})
+}*/
+func ListIssueRequests(c *gin.Context) {
+	user := c.MustGet(string(middlewares.UserContextKey)).(middlewares.User)
+	libID := user.LibID
+
+	var requests []models.RequestEvent
+	if err := config.DB.Raw(`
+		SELECT r.*
+		FROM request_events r
+		JOIN books b ON r.book_id = b.isbn
+		WHERE b.lib_id = ? AND r.deleted_at IS NULL`, libID).Scan(&requests).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error fetching requests"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"requests": requests})
 }
+
 
 func ApproveIssueRequest(c *gin.Context) {
 	reqIDStr := c.Param("reqid")
@@ -247,6 +321,7 @@ func ApproveIssueRequest(c *gin.Context) {
 }
 
 // RejectIssueRequest marks an issue request as rejected.
+
 func RejectIssueRequest(c *gin.Context) {
 	reqIDStr := c.Param("reqid")
 	reqID, err := strconv.Atoi(reqIDStr)
@@ -262,3 +337,37 @@ func RejectIssueRequest(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Issue request rejected"})
 }
+/*
+func RejectIssueRequest(c *gin.Context) {
+    reqIDStr := c.Param("reqid")
+    reqID, err := strconv.Atoi(reqIDStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request ID"})
+        return
+    }
+    
+    // Delete the request from the database so that it won't show up again.
+    if err := config.DB.Delete(&models.RequestEvent{}, reqID).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error rejecting request"})
+        return
+    }
+    
+    c.JSON(http.StatusOK, gin.H{"message": "Issue request rejected and removed"})
+}
+
+func RejectIssueRequest(c *gin.Context) {
+	reqIDStr := c.Param("reqid")
+	reqID, err := strconv.Atoi(reqIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request ID"})
+		return
+	}
+
+	// Use Unscoped deletion to permanently remove the record.
+	if err := config.DB.Unscoped().Delete(&models.RequestEvent{}, reqID).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error deleting request"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Issue request rejected and deleted"})
+}
+*/
