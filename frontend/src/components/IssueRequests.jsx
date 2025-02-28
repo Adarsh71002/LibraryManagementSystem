@@ -33,7 +33,7 @@ const IssueRequests = () => {
       setTimeout(() => setError(''), 3000);
     }
   };
-
+/*
   const handleReject = async (reqid) => {
     try {
       await rejectIssueRequestAPI(reqid);
@@ -44,7 +44,18 @@ const IssueRequests = () => {
       setError(err.message || 'Reject failed');
       setTimeout(() => setError(''), 3000);
     }
+  };*/
+  const handleReject = async (reqid) => {
+    try {
+      await rejectIssueRequestAPI(reqid);
+      // Immediately update local state to filter out the rejected request.
+      setRequests(prev => prev.filter(r => (r.id || r.ID) !== reqid));
+    } catch (err) {
+      setError(err.message || 'Reject failed');
+    }
   };
+  
+
 
   return (
     <div className="container">
