@@ -71,7 +71,7 @@ func SearchBooks(c *gin.Context) {
 type RaiseRequest struct {
 	ISBN string `json:"ISBN" binding:"required"`
 }
-
+/*
 func RaiseIssueRequest(c *gin.Context) {
 	var req RaiseRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -101,4 +101,50 @@ func RaiseIssueRequest(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"message": "Issue request raised successfully"})
+}
+*/
+func RaiseIssueRequest(c *gin.Context) {
+    var req RaiseRequest
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Missing ISBN in request"})
+        return
+    }
+    user := c.MustGet(string(middlewares.UserContextKey)).(middlewares.User)
+    libID := user.LibID
+
+    var book models.Book
+    if err := config.DB.Where("isbn = ? AND lib_id = ?", req.ISBN, libID).First(&book).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
+        return
+    }
+    if book.AvailableCopies <= 0 {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Book is not available for issue"})
+        return
+    }
+    
+    // Check if the reader already has an issued copy of this book.
+    var existingIssue models.IssueRegistry
+    err := config.DB.Where("isbn = ? AND reader_id = ? AND issue_status = ?", req.ISBN, user.ID, "Issued").First(&existingIssue).Error
+    if err == nil {
+        // Found an active issue for this book.
+        c.JSON(http.StatusBadRequest, gin.H{"error": "You already have an issued copy of this book. Please return it before requesting another copy."})
+        return
+    }
+    // If the error is not a record not found error, something went wrong.
+    if err != nil && err != gorm.ErrRecordNotFound {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error checking active issues"})
+        return
+    }
+
+    issueRequest := models.RequestEvent{
+        BookID:      req.ISBN,
+        ReaderID:    user.ID,
+        RequestType: "IssueRequest",
+        RequestDate: time.Now(),
+    }
+    if err := config.DB.Create(&issueRequest).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error raising issue request"})
+        return
+    }
+    c.JSON(http.StatusCreated, gin.H{"message": "Issue request raised successfully"})
 }
